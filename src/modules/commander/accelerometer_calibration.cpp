@@ -263,22 +263,22 @@ int do_accel_calibration(int mavlink_fd)
 		/* NOTE: hardcoded terms are only suitable for MPU6K (used in dataset)*/
 		if (device_id[i] == 1246218) {
 			/* since temperature calibration is not yet in place, load matlab estimations */
-			accel_scale.cal_temp   = 25.00f;
-			accel_scale.min_temp   =  3.30f;
-			accel_scale.max_temp   = 41.18f;
 
-			/* terms are rounded to 15 digits */
-			accel_scale.x3_temp[0] =  0.0000020097404558327980339f;
-			accel_scale.x2_temp[0] = -0.0001476439647376537322998f;
-			accel_scale.x1_temp[0] =  0.0049318065866827964782714f;
+			accel_scale.cal_temp = 25.00;
+			accel_scale.min_temp = -4.50;
+			accel_scale.max_temp = 62.86;
 
-			accel_scale.x3_temp[1] =  0.0000003976754214818356558f;
-			accel_scale.x2_temp[1] = -0.0000015925206753308884799f;
-			accel_scale.x1_temp[1] = -0.0002877060614991933107376f;
+			accel_scale.x3_temp[0] = 0.0000005636763376060116570;
+			accel_scale.x2_temp[0] = -0.0000464422628283500671387;
+			accel_scale.x1_temp[0] = 0.0002356417389819398522377;
 
-			accel_scale.x3_temp[2] =  0.0000007767035299366398248f;
-			accel_scale.x2_temp[2] =  0.0002070689370157197117805f;
-			accel_scale.x1_temp[2] = -0.0256174467504024505615234f;
+			accel_scale.x3_temp[1] = -0.0000000801529651539567567;
+			accel_scale.x2_temp[1] = 0.0000501912982144858688116;
+			accel_scale.x1_temp[1] = -0.0055214837193489074707031;
+
+			accel_scale.x3_temp[2] = 0.0000009417134947398153599;
+			accel_scale.x2_temp[2] = 0.0001667493634158745408058;
+			accel_scale.x1_temp[2] = -0.0257816836237907409667969;
 		}
 
 		bool failed = false;

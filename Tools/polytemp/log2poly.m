@@ -199,34 +199,37 @@ title('onboard COMP gyro',...
 
 
 fprintf('/***** ACCEL *****/ \n');
-fprintf('accel_scale.cal_temp = %0.2f;\n', ttemp);
-fprintf('accel_scale.min_temp = %0.2f;\n', min(gyro_t));
-fprintf('accel_scale.max_temp = %0.2f;\n', max(gyro_t));
-
+fprintf('\t\t\taccel_scale.cal_temp = %0.2f;\n', ttemp);
+fprintf('\t\t\taccel_scale.min_temp = %0.2f;\n', min(gyro_t));
+fprintf('\t\t\taccel_scale.max_temp = %0.2f;\n', max(gyro_t));
+fprintf('\n')
 for i=1:3
     for j=1:3
-        fprintf('accel_scale.x%d_temp[%d] = %0.25f;\n', 4-j, i-1, single(accel_pt(j,i)));
+        fprintf('\t\t\taccel_scale.x%d_temp[%d] = %0.25f;\n', 4-j, i-1, single(accel_pt(j,i)));
     end
+	fprintf('\n')
 end
 
 fprintf('/***** GYRO *****/ \n');
-fprintf('gyro_scale[s].cal_temp = %0.2f;\n', ttemp);
-fprintf('gyro_scale[s].min_temp = %0.2f;\n', min(gyro_t));
-fprintf('gyro_scale[s].max_temp = %0.2f;\n', max(gyro_t));
-
+fprintf('\t\t\tworker_data->gyro_scale[s].cal_temp = %0.2f;\n', ttemp);
+fprintf('\t\t\tworker_data->gyro_scale[s].min_temp = %0.2f;\n', min(gyro_t));
+fprintf('\t\t\tworker_data->gyro_scale[s].max_temp = %0.2f;\n', max(gyro_t));
+fprintf('\n')
 for i=1:3
     for j=1:3
-        fprintf('gyro_scale[s].x%d_temp[%d] = %0.25f;\n', 4-j, i-1, single(gyro_pt(j,i)));
+        fprintf('\t\t\tworker_data->gyro_scale[s].x%d_temp[%d] = %0.25f;\n', 4-j, i-1, single(gyro_pt(j,i)));
     end
+    fprintf('\n')
 end
 
 fprintf('/***** MAG *****/ \n');
-fprintf('mscale.cal_temp = %0.2f;\n', ttemp);
-fprintf('mscale.min_temp = %0.2f;\n', min(gyro_t));
-fprintf('mscale.max_temp = %0.2f;\n', max(gyro_t));
-
+fprintf('\t\t\t\t\t\tmscale.cal_temp = %0.2f;\n', ttemp);
+fprintf('\t\t\t\t\t\tmscale.min_temp = %0.2f;\n', min(gyro_t));
+fprintf('\t\t\t\t\t\tmscale.max_temp = %0.2f;\n', max(gyro_t));
+fprintf('\n')
 for i=1:3
     for j=1:3
-        fprintf('mscale.x%d_temp[%d] = %0.25f;\n', 4-j, i-1, single(accel_pt(j,i)));
+        fprintf('\t\t\t\t\t\tmscale.x%d_temp[%d] = %0.25f;\n', 4-j, i-1, single(accel_pt(j,i)));
     end
+	fprintf('\n')
 end

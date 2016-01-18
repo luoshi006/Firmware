@@ -148,24 +148,23 @@ static calibrate_return gyro_calibration_worker(int cancel_sub, void* data)
 
 		/* NOTE: hardcoded terms are only suitable for MPU6K (used in dataset)*/
 		if (worker_data->device_id[s] == 2163722) {
-
 			/* since temperature calibration is not yet in place, load matlab estimations */
-			worker_data->gyro_scale[s].cal_temp   = 25.00f;
-			worker_data->gyro_scale[s].min_temp   =  3.30f;
-			worker_data->gyro_scale[s].max_temp   = 41.18f;
 
-			/* terms are rounded to 15 digits */
-			worker_data->gyro_scale[s].x3_temp[0] = -0.0000000625702298862051975f;
-			worker_data->gyro_scale[s].x2_temp[0] = -0.0000017993397705140523612f;
-			worker_data->gyro_scale[s].x1_temp[0] = -0.0000240297904383623972535f;
+			worker_data->gyro_scale[s].cal_temp = 25.00;
+			worker_data->gyro_scale[s].min_temp = -4.50;
+			worker_data->gyro_scale[s].max_temp = 62.86;
 
-			worker_data->gyro_scale[s].x3_temp[1] = -0.0000001233819375556777231f;
-			worker_data->gyro_scale[s].x2_temp[1] =  0.0000096715739346109330654f;
-			worker_data->gyro_scale[s].x1_temp[1] =  0.0002188256476074457168579f;
+			worker_data->gyro_scale[s].x3_temp[0] = 0.0000000372172053175745532;
+			worker_data->gyro_scale[s].x2_temp[0] = -0.0000028590136480488581583;
+			worker_data->gyro_scale[s].x1_temp[0] = -0.0005329432315193116664886;
 
-			worker_data->gyro_scale[s].x3_temp[2] =  0.0000001756044554213076480f;
-			worker_data->gyro_scale[s].x2_temp[2] = -0.0000135302334456355310976f;
-			worker_data->gyro_scale[s].x1_temp[2] =  0.0000352428978658281266689f;
+			worker_data->gyro_scale[s].x3_temp[1] = -0.0000000060085727504599618;
+			worker_data->gyro_scale[s].x2_temp[1] = 0.0000013717734645979362540;
+			worker_data->gyro_scale[s].x1_temp[1] = 0.0006099980673752725124359;
+
+			worker_data->gyro_scale[s].x3_temp[2] = 0.0000001697812734846593230;
+			worker_data->gyro_scale[s].x2_temp[2] = -0.0000134341398734250105917;
+			worker_data->gyro_scale[s].x1_temp[2] = 0.0002345153916394338011742;
 		}
 	}
 

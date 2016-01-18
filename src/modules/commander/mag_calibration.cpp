@@ -616,22 +616,21 @@ calibrate_return mag_calibrate_all(int mavlink_fd, int32_t (&device_ids)[max_mag
 					/* since temperature calibration is not yet in place, load matlab estimations */
 					/* NOTE: hardcoded terms are only suitable for LSM303D (used in dataset) */
 					if (device_ids[cur_mag] == 131594) {
-						mscale.cal_temp   = 25.00f;
-						mscale.min_temp   =  3.30f;
-						mscale.max_temp   = 41.18f;
+						mscale.cal_temp = 25.00;
+						mscale.min_temp = -4.50;
+						mscale.max_temp = 62.86;
 
-						/* terms are rounded to 15 digits */
-						mscale.x3_temp[0] =  0.0000002037008925981353968f;
-						mscale.x2_temp[0] = -0.0000053157482398091815412f;
-						mscale.x1_temp[0] = -0.0008966009481810033321380f;
+						mscale.x3_temp[0] = 0.0000005636763376060116570;
+						mscale.x2_temp[0] = -0.0000464422628283500671387;
+						mscale.x1_temp[0] = 0.0002356417389819398522377;
 
-						mscale.x3_temp[1] = -0.0000000252839047476527412f;
-						mscale.x2_temp[1] = -0.0000029153295599826378747f;
-						mscale.x1_temp[1] =  0.0003352015919517725706100f;
+						mscale.x3_temp[1] = -0.0000000801529651539567567;
+						mscale.x2_temp[1] = 0.0000501912982144858688116;
+						mscale.x1_temp[1] = -0.0055214837193489074707031;
 
-						mscale.x3_temp[2] =  0.0000000083432984965270406f;
-						mscale.x2_temp[2] =  0.0000064743926486698910593f;
-						mscale.x1_temp[2] = -0.0014722041087225079536437f;
+						mscale.x3_temp[2] = 0.0000009417134947398153599;
+						mscale.x2_temp[2] = 0.0001667493634158745408058;
+						mscale.x1_temp[2] = -0.0257816836237907409667969;
 					}
 
 					bool failed = false;

@@ -74,6 +74,7 @@
 #include <uORB/topics/vehicle_global_position.h>
 #include <uORB/topics/estimator_status.h>
 #include <uORB/topics/ekf2_innovations.h>
+#include <uORB/topics/ekf2_replay.h>
 
 #include <ecl/EKF/ekf.h>
 
@@ -109,6 +110,8 @@ public:
 	 */
 	int		start();
 
+	void 	set_replay_mode(bool replay) {_replay_mode = true;};
+
 	static void	task_main_trampoline(int argc, char *argv[]);
 
 	void		task_main();
@@ -121,8 +124,9 @@ public:
 
 private:
 	static constexpr float _dt_max = 0.02;
-	bool		_task_should_exit = false;		/**< if true, task should exit */
-	int		_control_task = -1;			/**< task handle for task */
+	bool		_task_should_exit = false;
+	int		_control_task = -1;			// task handle for task
+	bool 	_replay_mode;	// should we use replay data from a log
 
 	int		_sensors_sub = -1;
 	int		_gps_sub = -1;
@@ -135,6 +139,7 @@ private:
 	orb_advert_t _vehicle_global_position_pub;
 	orb_advert_t _estimator_status_pub;
 	orb_advert_t _estimator_innovations_pub;
+	orb_advert_t _replay_pub;
 
 
 	/* Low pass filter for attitude rates */
@@ -175,12 +180,14 @@ private:
 
 Ekf2::Ekf2():
 	SuperBlock(NULL, "EKF"),
+	_replay_mode(false),
 	_att_pub(nullptr),
 	_lpos_pub(nullptr),
 	_control_state_pub(nullptr),
 	_vehicle_global_position_pub(nullptr),
 	_estimator_status_pub(nullptr),
 	_estimator_innovations_pub(nullptr),
+	_replay_pub(nullptr),
 	_lp_roll_rate(250.0f, 30.0f),
 	_lp_pitch_rate(250.0f, 30.0f),
 	_lp_yaw_rate(250.0f, 20.0f),
@@ -247,8 +254,6 @@ void Ekf2::task_main()
 	// initialise parameter cache
 	updateParams();
 
-	vehicle_gps_position_s gps = {};
-
 	while (!_task_should_exit) {
 		int ret = px4_poll(fds, sizeof(fds) / sizeof(fds[0]), 1000);
 
@@ -279,10 +284,9 @@ void Ekf2::task_main()
 		bool airspeed_updated = false;
 
 		sensor_combined_s sensors = {};
+		vehicle_gps_position_s gps = {};
 		airspeed_s airspeed = {};
-
 		orb_copy(ORB_ID(sensor_combined), _sensors_sub, &sensors);
-
 		// update all other topics if they have new data
 		orb_check(_gps_sub, &gps_updated);
 
@@ -296,7 +300,14 @@ void Ekf2::task_main()
 			orb_copy(ORB_ID(airspeed), _airspeed_sub, &airspeed);
 		}
 
-		hrt_abstime now = hrt_absolute_time();
+		// in replay mode we are getting the actual timestamp from the sensor topic
+		hrt_abstime now = 0;
+		if (_replay_mode) {
+			now = sensors.timestamp;
+		} else {
+			now = hrt_absolute_time();
+		}
+
 		// push imu data into estimator
 		_ekf->setIMUData(now, sensors.gyro_integral_dt[0], sensors.accelerometer_integral_dt[0],
 				 &sensors.gyro_integral_rad[0], &sensors.accelerometer_integral_m_s[0]);
@@ -376,8 +387,8 @@ void Ekf2::task_main()
 		lpos.xy_global =
 			_ekf->position_is_valid();// true if position (x, y) is valid and has valid global reference (ref_lat, ref_lon)
 		lpos.z_global = true;// true if z is valid and has valid global reference (ref_alt)
-		lpos.ref_lat = _ekf->_posRef.lat_rad * 180.0 / M_PI; // Reference point latitude in degrees
-		lpos.ref_lon = _ekf->_posRef.lon_rad * 180.0 / M_PI; // Reference point longitude in degrees
+		lpos.ref_lat = _ekf->_posRef.lat_rad * (double)180.0 * M_PI; // Reference point latitude in degrees
+		lpos.ref_lon = _ekf->_posRef.lon_rad * (double)180.0 * M_PI; // Reference point longitude in degrees
 		lpos.ref_alt =
 			_ekf->_gps_alt_ref; // Reference altitude AMSL in meters, MUST be set to current (not at reference point!) ground level
 
@@ -513,6 +524,37 @@ void Ekf2::task_main()
 			orb_publish(ORB_ID(ekf2_innovations), _estimator_innovations_pub, &innovations);
 		}
 
+		// publish replay message
+		struct ekf2_replay_s replay = {};
+		replay.time_ref = now;
+		replay.gyro_integral_dt = sensors.gyro_integral_dt[0];
+		replay.accelerometer_integral_dt = sensors.accelerometer_integral_dt[0];
+		replay.magnetometer_timestamp = sensors.magnetometer_timestamp[0];
+		replay.baro_timestamp = sensors.baro_timestamp[0];
+		memcpy(&replay.gyro_integral_rad[0], &sensors.gyro_integral_rad[0], sizeof(replay.gyro_integral_rad));
+		memcpy(&replay.accelerometer_integral_m_s[0], &sensors.accelerometer_integral_m_s[0], sizeof(replay.accelerometer_integral_m_s));
+		memcpy(&replay.magnetometer_ga[0], &sensors.magnetometer_ga[0], sizeof(replay.magnetometer_ga));
+		replay.baro_alt_meter = sensors.baro_alt_meter[0];
+		replay.time_usec = gps.timestamp_position;
+		replay.time_usec_vel = gps.timestamp_velocity;
+		replay.lat = gps.lat;
+		replay.lon = gps.lon;
+		replay.alt = gps.alt;
+		replay.fix_type = gps.fix_type;
+		replay.eph = gps.eph;
+		replay.epv = gps.epv;
+		replay.vel_m_s = gps.vel_m_s;
+		replay.vel_n_m_s = gps.vel_n_m_s;
+		replay.vel_e_m_s = gps.vel_e_m_s;
+		replay.vel_d_m_s = gps.vel_d_m_s;
+		replay.vel_ned_valid = gps.vel_ned_valid;
+
+		if (_replay_pub == nullptr) {
+			_replay_pub = orb_advertise(ORB_ID(ekf2_replay), &replay);
+
+		} else {
+			orb_publish(ORB_ID(ekf2_replay), _replay_pub, &replay);
+		}
 	}
 
 	delete ekf2::instance;
@@ -559,6 +601,12 @@ int ekf2_main(int argc, char *argv[])
 		}
 
 		ekf2::instance = new Ekf2();
+
+		if (argc >= 3) {
+			if (!strcmp(argv[2], "--replay")) {
+				ekf2::instance->set_replay_mode(true);
+			}
+		}
 
 		if (ekf2::instance == nullptr) {
 			PX4_WARN("alloc failed");

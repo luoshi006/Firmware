@@ -45,10 +45,10 @@ namespace launchdetection
 {
 
 LaunchDetector::LaunchDetector() :
-	SuperBlock(NULL, "LAUN"),
+	SuperBlock(nullptr, "LAUN"),
 	activeLaunchDetectionMethodIndex(-1),
 	launchdetection_on(this, "ALL_ON"),
-	throttlePreTakeoff(this, "THR_PRE")
+	throttlePreTakeoff(nullptr, "FW_THR_IDLE")
 {
 	/* init all detectors */
 	launchMethods[0] = new CatapultLaunchMethod(this);

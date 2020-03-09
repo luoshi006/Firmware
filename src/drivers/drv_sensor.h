@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2012-2017 PX4 Development Team. All rights reserved.
+ *   Copyright (c) 2012-2020 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,7 +40,7 @@
 #ifndef _DRV_SENSOR_H
 #define _DRV_SENSOR_H
 
-#include <px4_defines.h>
+#include <px4_platform_common/defines.h>
 #include <stdint.h>
 #include <sys/ioctl.h>
 
@@ -54,22 +54,28 @@
 
 #define DRV_MAG_DEVTYPE_HMC5883  0x01
 #define DRV_MAG_DEVTYPE_LSM303D  0x02
-#define DRV_MAG_DEVTYPE_ACCELSIM 0x03
+#define DRV_MAG_DEVTYPE_MAGSIM   0x03
 #define DRV_MAG_DEVTYPE_MPU9250  0x04
 #define DRV_MAG_DEVTYPE_LIS3MDL  0x05
 #define DRV_MAG_DEVTYPE_IST8310  0x06
+#define DRV_MAG_DEVTYPE_RM3100   0x07
+#define DRV_MAG_DEVTYPE_QMC5883  0x08
+#define DRV_MAG_DEVTYPE_AK09916  0x09
+#define DRV_DEVTYPE_ICM20948     0x0A
+
 #define DRV_ACC_DEVTYPE_LSM303D  0x11
 #define DRV_ACC_DEVTYPE_BMA180   0x12
 #define DRV_ACC_DEVTYPE_MPU6000  0x13
 #define DRV_ACC_DEVTYPE_ACCELSIM 0x14
-#define DRV_ACC_DEVTYPE_GYROSIM  0x15
 #define DRV_ACC_DEVTYPE_MPU9250  0x16
 #define DRV_ACC_DEVTYPE_BMI160   0x17
+
 #define DRV_GYR_DEVTYPE_MPU6000  0x21
 #define DRV_GYR_DEVTYPE_L3GD20   0x22
 #define DRV_GYR_DEVTYPE_GYROSIM  0x23
 #define DRV_GYR_DEVTYPE_MPU9250  0x24
 #define DRV_GYR_DEVTYPE_BMI160   0x25
+
 #define DRV_RNG_DEVTYPE_MB12XX   0x31
 #define DRV_RNG_DEVTYPE_LL40LS   0x32
 #define DRV_ACC_DEVTYPE_MPU6050  0x33
@@ -86,6 +92,38 @@
 #define DRV_BARO_DEVTYPE_MS5607		0x3E
 #define DRV_BARO_DEVTYPE_BMP280		0x3F
 #define DRV_BARO_DEVTYPE_LPS25H		0x40
+#define DRV_ACC_DEVTYPE_BMI055		0x41
+#define DRV_GYR_DEVTYPE_BMI055		0x42
+#define DRV_MAG_DEVTYPE_BMM150		0x43
+#define DRV_IMU_DEVTYPE_ST_LSM9DS1_AG   0x44
+#define DRV_MAG_DEVTYPE_ST_LSM9DS1_M    0x45
+#define DRV_DIFF_PRESS_DEVTYPE_ETS3     0x46
+#define DRV_DIFF_PRESS_DEVTYPE_MS4525   0x47
+#define DRV_DIFF_PRESS_DEVTYPE_MS5525   0x48
+#define DRV_DIFF_PRESS_DEVTYPE_SDP31    0x49
+#define DRV_DIFF_PRESS_DEVTYPE_SDP32    0x4A
+#define DRV_DIFF_PRESS_DEVTYPE_SDP33    0x4B
+
+#define DRV_BARO_DEVTYPE_MPL3115A2	0x51
+#define DRV_ACC_DEVTYPE_FXOS8701C	0x52
+
+#define DRV_GYR_DEVTYPE_FXAS2100C	0x54
+#define DRV_ACC_DEVTYPE_ADIS16448	0x55
+#define DRV_MAG_DEVTYPE_ADIS16448	0x56
+#define DRV_GYR_DEVTYPE_ADIS16448	0x57
+#define DRV_BARO_DEVTYPE_LPS22HB	0x58
+#define DRV_ACC_DEVTYPE_ADIS16477	0x59
+
+#define DRV_GYR_DEVTYPE_ADIS16477	0x60
+#define DRV_ACC_DEVTYPE_LSM303AGR	0x61
+#define DRV_MAG_DEVTYPE_LSM303AGR	0x62
+#define DRV_ACC_DEVTYPE_ADIS16497	0x63
+#define DRV_GYR_DEVTYPE_ADIS16497	0x64
+#define DRV_BARO_DEVTYPE_BAROSIM	0x65
+#define DRV_DEVTYPE_BMI088		0x66
+#define DRV_DEVTYPE_BMP388		0x67
+#define DRV_DEVTYPE_DPS310		0x68
+#define DRV_DEVTYPE_ST_ISM330DLC	0x69
 
 /*
  * ioctl() definitions
@@ -103,46 +141,11 @@
  */
 #define SENSORIOCSPOLLRATE	_SENSORIOC(0)
 
-/**
- * Return the driver's approximate polling rate in Hz, or one of the
- * SENSOR_POLLRATE values.
- */
-#define SENSORIOCGPOLLRATE	_SENSORIOC(1)
-
-#define SENSOR_POLLRATE_MANUAL		1000000	/**< poll when read */
-#define SENSOR_POLLRATE_EXTERNAL	1000001	/**< poll when device signals ready */
-#define SENSOR_POLLRATE_MAX		1000002	/**< poll at device maximum rate */
 #define SENSOR_POLLRATE_DEFAULT		1000003	/**< poll at driver normal rate */
-
-/**
- * Set the internal queue depth to (arg) entries, must be at least 1
- *
- * This sets the upper bound on the number of readings that can be
- * read from the driver.
- */
-#define SENSORIOCSQUEUEDEPTH	_SENSORIOC(2)
-
-/** return the internal queue depth */
-#define SENSORIOCGQUEUEDEPTH	_SENSORIOC(3)
 
 /**
  * Reset the sensor to its default configuration
  */
 #define SENSORIOCRESET		_SENSORIOC(4)
-
-/**
- * Set the sensor orientation
- */
-#define SENSORIOCSROTATION	_SENSORIOC(5)
-
-/**
- * Get the sensor orientation
- */
-#define SENSORIOCGROTATION	_SENSORIOC(6)
-
-/**
- * Test the sensor calibration
- */
-#define SENSORIOCCALTEST	_SENSORIOC(7)
 
 #endif /* _DRV_SENSOR_H */

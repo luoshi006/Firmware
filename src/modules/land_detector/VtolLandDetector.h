@@ -41,7 +41,8 @@
 
 #pragma once
 
-#include <uORB/topics/airspeed.h>
+#include <uORB/topics/airspeed_validated.h>
+#include <uORB/topics/vehicle_status.h>
 
 #include "MulticopterLandDetector.h"
 
@@ -51,37 +52,30 @@ namespace land_detector
 class VtolLandDetector : public MulticopterLandDetector
 {
 public:
-	VtolLandDetector();
+	VtolLandDetector() = default;
+	~VtolLandDetector() override = default;
 
 protected:
-	virtual void _initialize_topics() override;
-
-	virtual void _update_params() override;
-
-	virtual void _update_topics() override;
-
-	virtual bool _get_landed_state() override;
-
-	virtual bool  _get_ground_contact_state() override;
-
-	virtual bool _get_freefall_state() override;
+	void _update_topics() override;
+	bool _get_landed_state() override;
+	bool _get_maybe_landed_state() override;
+	bool _get_freefall_state() override;
 
 private:
-	struct {
-		param_t maxAirSpeed;
-	} _paramHandle;
 
-	struct {
-		float maxAirSpeed;
-	} _params;
+	uORB::Subscription _airspeed_validated_sub{ORB_ID(airspeed_validated)};
+	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};
 
-	int _airspeedSub;
+	airspeed_validated_s _airspeed_validated{};
+	vehicle_status_s _vehicle_status{};
 
-	struct airspeed_s _airspeed;
+	bool _was_in_air{false}; /**< indicates whether the vehicle was in the air in the previous iteration */
+	float _airspeed_filtered{0.0f}; /**< low pass filtered airspeed */
 
-	bool _was_in_air; /**< indicates whether the vehicle was in the air in the previous iteration */
-	float _airspeed_filtered; /**< low pass filtered airspeed */
+	DEFINE_PARAMETERS_CUSTOM_PARENT(
+		MulticopterLandDetector,
+		(ParamFloat<px4::params::LNDFW_AIRSPD_MAX>) _param_lndfw_airspd_max
+	);
 };
-
 
 } // namespace land_detector

@@ -35,9 +35,8 @@ px4_add_module(
 	MAIN local_position_estimator
 	COMPILE_FLAGS
 	STACK_MAIN 5700
-	STACK_MAX 13000
+	STACK_MAX 3700
 	SRCS
-		local_position_estimator_main.cpp
 		BlockLocalPositionEstimator.cpp
 		sensors/flow.cpp
 		sensors/lidar.cpp
@@ -47,7 +46,10 @@ px4_add_module(
 		sensors/vision.cpp
 		sensors/mocap.cpp
 		sensors/land.cpp
+		sensors/landing_target.cpp
 	DEPENDS
-		platforms__common
+		controllib
+		git_ecl
+		ecl_geo
+		px4_work_queue
 	)
-# vim: set noet ft=cmake fenc=utf-8 ff=unix :

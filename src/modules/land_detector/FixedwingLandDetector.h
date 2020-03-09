@@ -42,61 +42,49 @@
 
 #pragma once
 
-#include <uORB/topics/control_state.h>
-#include <uORB/topics/actuator_armed.h>
-#include <uORB/topics/airspeed.h>
+#include <matrix/math.hpp>
+#include <uORB/topics/airspeed_validated.h>
 
 #include "LandDetector.h"
+
+using namespace time_literals;
 
 namespace land_detector
 {
 
-class FixedwingLandDetector : public LandDetector
+class FixedwingLandDetector final : public LandDetector
 {
 public:
 	FixedwingLandDetector();
+	~FixedwingLandDetector() override = default;
 
 protected:
-	virtual void _initialize_topics() override;
 
-	virtual void _update_params() override;
+	bool _get_landed_state() override;
+	void _update_topics() override;
 
-	virtual void _update_topics() override;
-
-	virtual bool _get_landed_state() override;
-
-	virtual bool _get_ground_contact_state() override;
-
-	virtual bool _get_freefall_state() override;
-
-	virtual float _get_max_altitude() override;
 private:
-	struct {
-		param_t maxVelocity;
-		param_t maxClimbRate;
-		param_t maxAirSpeed;
-		param_t maxIntVelocity;
-	} _paramHandle;
 
-	struct {
-		float maxVelocity;
-		float maxClimbRate;
-		float maxAirSpeed;
-		float maxIntVelocity;
-	} _params;
+	/** Time in us that landing conditions have to hold before triggering a land. */
+	static constexpr hrt_abstime LANDED_TRIGGER_TIME_US = 2_s;
+	static constexpr hrt_abstime FLYING_TRIGGER_TIME_US = 0_us;
 
-	int _controlStateSub;
-	int _armingSub;
-	int _airspeedSub;
+	uORB::Subscription _airspeed_validated_sub{ORB_ID(airspeed_validated)};
 
-	struct control_state_s _controlState;
-	struct actuator_armed_s _arming;
-	struct airspeed_s _airspeed;
+	airspeed_validated_s _airspeed_validated{};
 
-	float _velocity_xy_filtered;
-	float _velocity_z_filtered;
-	float _airspeed_filtered;
-	float _accel_horz_lp;
+	float _airspeed_filtered{0.0f};
+	float _velocity_xy_filtered{0.0f};
+	float _velocity_z_filtered{0.0f};
+	float _xy_accel_filtered{0.0f};
+
+	DEFINE_PARAMETERS_CUSTOM_PARENT(
+		LandDetector,
+		(ParamFloat<px4::params::LNDFW_XYACC_MAX>)  _param_lndfw_xyaccel_max,
+		(ParamFloat<px4::params::LNDFW_AIRSPD_MAX>) _param_lndfw_airspd,
+		(ParamFloat<px4::params::LNDFW_VEL_XY_MAX>) _param_lndfw_vel_xy_max,
+		(ParamFloat<px4::params::LNDFW_VEL_Z_MAX>)  _param_lndfw_vel_z_max
+	);
 };
 
 } // namespace land_detector

@@ -1,7 +1,9 @@
 # This is similar to the mavlink message ATTITUDE_QUATERNION, but for onboard use
-float32 rollspeed	# Angular velocity about body north axis (x) in rad/s
-float32 pitchspeed	# Angular velocity about body east axis (y) in rad/s
-float32 yawspeed	# Angular velocity about body down axis (z) in rad/s
-float32[4] q		# Quaternion (NED)
+
+uint64 timestamp		# time since system start (microseconds)
+
+float32[4] q			# Quaternion rotation from XYZ body frame to NED earth frame.
+float32[4] delta_q_reset 	# Amount by which quaternion has changed during last reset
+uint8 quat_reset_counter	# Quaternion reset counter
 
 # TOPICS vehicle_attitude vehicle_attitude_groundtruth vehicle_vision_attitude
